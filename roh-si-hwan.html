@@ -33,10 +33,10 @@
       margin-bottom: 18px;
     }
 
-    /* 📌 173 x 216 비율 적용된 사진 박스 */
+    /* 173 x 216 비율 사진 박스 */
     .team-logo {
-      width: 62px;               /* 고정 */
-      height: 78px;              /* 62 × (216/173) ≈ 78 */
+      width: 62px;
+      height: 78px; /* 62 * (216/173) */
       border-radius: 12px;
       overflow: hidden;
       background: #22293f;
@@ -48,7 +48,7 @@
     .player-photo {
       width: 100%;
       height: 100%;
-      object-fit: cover;         /* 박스 비율 유지하면서 이미지 꽉 채움 */
+      object-fit: cover;
     }
 
     .player-main {
@@ -144,7 +144,7 @@
       text-align: right;
     }
 
-    /* --- 버튼 스타일 --- */
+    /* --- 응원가 버튼 스타일 --- */
     .cheer-button {
       margin-top: 14px;
       padding: 10px 14px;
@@ -165,6 +165,12 @@
       transform: scale(0.97);
     }
 
+    .audio-hint {
+      margin-top: 6px;
+      font-size: 10px;
+      opacity: 0.6;
+      text-align: left;
+    }
   </style>
 </head>
 
@@ -173,10 +179,8 @@
 
     <!-- 상단 선수 기본 정보 -->
     <header class="header">
-
-      <!-- 📌 173×216 비율 이미지 삽입 -->
       <div class="team-logo">
-        <img src="roh-si-hwan.jpg" alt="노시환" class="player-photo">
+        <img src="noh-si-hwan.jpg" alt="노시환" class="player-photo">
       </div>
 
       <div class="player-main">
@@ -235,12 +239,15 @@
     </section>
 
     <!-- 응원가 버튼 -->
-    <button class="cheer-button" onclick="playCheer()">🎵 응원가 재생</button>
+    <button id="cheer-button" class="cheer-button">🎵 응원가 재생</button>
+    <div class="audio-hint">
+      iPhone에서는 무음 모드 해제하고, 버튼을 눌러야 소리가 재생됩니다.
+    </div>
 
     <div class="footer-note">개인 제작 KBO Player NFC Card 프로젝트</div>
 
     <!-- 오디오 -->
-    <audio id="cheer-audio">
+    <audio id="cheer-audio" preload="auto">
       <source src="roh-si-hwan.mp3" type="audio/mpeg" />
     </audio>
 
@@ -248,16 +255,43 @@
 
   <script>
     const audio = document.getElementById("cheer-audio");
+    const button = document.getElementById("cheer-button");
+    let isPlaying = false;
 
-    // 자동 재생 시도
-    window.addEventListener("load", () => {
-      audio.play().catch(() => {});
+    function updateButton() {
+      if (isPlaying) {
+        button.textContent = "⏸ 응원가 일시정지";
+      } else {
+        button.textContent = "🎵 응원가 재생";
+      }
+    }
+
+    button.addEventListener("click", () => {
+      if (!audio) return;
+
+      if (isPlaying) {
+        audio.pause();
+        isPlaying = false;
+        updateButton();
+      } else {
+        audio
+          .play()
+          .then(() => {
+            isPlaying = true;
+            updateButton();
+          })
+          .catch((err) => {
+            // iOS에서 무음 모드 / 시스템 설정 때문에 실패할 수 있음
+            console.log("Audio play error:", err);
+            alert("소리가 안 들리면:\n1) 아이폰 무음 스위치를 끄고\n2) 볼륨을 올린 뒤\n3) 버튼을 다시 눌러줘!");
+          });
+      }
     });
 
-    // 버튼 재생
-    function playCheer() {
-      audio.play();
-    }
+    audio.addEventListener("ended", () => {
+      isPlaying = false;
+      updateButton();
+    });
   </script>
 
 </body>
